@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/golang/snappy"
 	"github.com/oklog/ulid"
 	"github.com/pkg/errors"
@@ -108,6 +109,7 @@ func (cfg *MetadataCacheConfig) Validate() error {
 }
 
 func CreateCachingBucket(chunksConfig ChunksCacheConfig, metadataConfig MetadataCacheConfig, bkt objstore.Bucket, logger log.Logger, reg prometheus.Registerer) (objstore.Bucket, error) {
+	level.Info(logger).Log("msg", "Creating a caching bucket")
 	cfg := storecache.NewCachingBucketConfig()
 	cachingConfigured := false
 
@@ -116,9 +118,12 @@ func CreateCachingBucket(chunksConfig ChunksCacheConfig, metadataConfig Metadata
 		return nil, errors.Wrapf(err, "chunks-cache")
 	}
 	if chunksCache != nil {
+		level.Info(logger).Log("msg", "Creating a chunks cache in caching bucket")
 		cachingConfigured = true
 		chunksCache = cache.NewTracingCache(chunksCache)
 		cfg.CacheGetRange("chunks", chunksCache, isTSDBChunkFile, chunksConfig.SubrangeSize, chunksConfig.AttributesTTL, chunksConfig.SubrangeTTL, chunksConfig.MaxGetRangeRequests)
+	} else {
+		level.Info(logger).Log("msg", "Not creating a chunks cache in caching bucket")
 	}
 
 	metadataCache, err := createCache("metadata-cache", metadataConfig.Backend, metadataConfig.Memcached, logger, reg)
@@ -126,6 +131,7 @@ func CreateCachingBucket(chunksConfig ChunksCacheConfig, metadataConfig Metadata
 		return nil, errors.Wrapf(err, "metadata-cache")
 	}
 	if metadataCache != nil {
+		level.Info(logger).Log("msg", "Creating a metadata cache in caching bucket")
 		cachingConfigured = true
 		metadataCache = cache.NewTracingCache(metadataCache)
 
@@ -139,6 +145,8 @@ func CreateCachingBucket(chunksConfig ChunksCacheConfig, metadataConfig Metadata
 		cfg.CacheIter("tenants-iter", metadataCache, isTenantsDir, metadataConfig.TenantsListTTL, codec)
 		cfg.CacheIter("tenant-blocks-iter", metadataCache, isTenantBlocksDir, metadataConfig.TenantBlocksListTTL, codec)
 		cfg.CacheIter("chunks-iter", metadataCache, isChunksDir, metadataConfig.ChunksListTTL, codec)
+	} else {
+		level.Info(logger).Log("msg", "Not creating a metadata cache in caching bucket")
 	}
 
 	if !cachingConfigured {
@@ -153,9 +161,12 @@ func createCache(cacheName string, backend string, memcached MemcachedClientConf
 	switch backend {
 	case "":
 		// No caching.
+		level.Warn(logger).Log("msg", "No caching support for", cacheName)
 		return nil, nil
 
 	case CacheBackendMemcached:
+		level.Info(logger).Log("msg", "Memcached used for", cacheName, "memcached config:", memcached)
+
 		var client cacheutil.MemcachedClient
 		client, err := cacheutil.NewMemcachedClientWithConfig(logger, cacheName, memcached.ToMemcachedClientConfig(), reg)
 		if err != nil {

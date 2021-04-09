@@ -7,6 +7,7 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/thanos-io/thanos/pkg/cacheutil"
@@ -82,8 +83,10 @@ func (cfg *InMemoryIndexCacheConfig) RegisterFlagsWithPrefix(f *flag.FlagSet, pr
 func NewIndexCache(cfg IndexCacheConfig, logger log.Logger, registerer prometheus.Registerer) (storecache.IndexCache, error) {
 	switch cfg.Backend {
 	case IndexCacheBackendInMemory:
+		level.Info(logger).Log("msg", "Using in memory index cache for bucket")
 		return newInMemoryIndexCache(cfg.InMemory, logger, registerer)
 	case IndexCacheBackendMemcached:
+		level.Info(logger).Log("msg", "Using in index cache bucket for bucket")
 		return newMemcachedIndexCache(cfg.Memcached, logger, registerer)
 	default:
 		return nil, errUnsupportedIndexCacheBackend
@@ -106,6 +109,8 @@ func newInMemoryIndexCache(cfg InMemoryIndexCacheConfig, logger log.Logger, regi
 }
 
 func newMemcachedIndexCache(cfg MemcachedClientConfig, logger log.Logger, registerer prometheus.Registerer) (storecache.IndexCache, error) {
+	level.Info(logger).Log("msg", "Creating Memcached Index Config", cfg)
+
 	client, err := cacheutil.NewMemcachedClientWithConfig(logger, "index-cache", cfg.ToMemcachedClientConfig(), registerer)
 	if err != nil {
 		return nil, errors.Wrapf(err, "create index cache memcached client")
