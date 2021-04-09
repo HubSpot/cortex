@@ -11,14 +11,3 @@ steps:
     description: Build Cortex
     commands:
       - build/run.sh make
-  - name: docker
-    description: Build and push Cortex image
-    commands:
-      - |
-        cd cluster/images/cortex
-        export REGISTRY=docker.hubteam.com
-        export VERSION=$KUBE_VERSION-$GIT_BRANCH-$MODULE_BUILD_NUMBER
-        export IMAGE_NAME=cortex
-        make build VERSION=${VERSION}
-        docker push ${REGISTRY}/${IMAGE_NAME}:${VERSION}
-        echo "Pushed docker image ${REGISTRY}/${IMAGE_NAME}:${VERSION}"
