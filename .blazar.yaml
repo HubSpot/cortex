@@ -1,12 +1,9 @@
 enabled: true
 
-env:
-  DOCKER_USER: hubspot
-  DOCKER_HOST: unix:///var/run/host-docker.sock
-
-user: root
-
 steps:
+  - name: start_docker
+    commands:
+     - start_dockerd.sh
   - name: build
     description: Build Cortex
     commands:
