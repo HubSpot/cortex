@@ -38,7 +38,7 @@ SED ?= $(shell which gsed 2>/dev/null || which sed)
 # declared.
 %/$(UPTODATE): %/Dockerfile
 	@echo
-	$(SUDO) docker build --net=host --build-arg=revision=$(GIT_REVISION) --build-arg=goproxyValue=$(GOPROXY_VALUE) -t $(IMAGE_PREFIX)$(shell basename $(@D)) $(@D)/
+	$(SUDO) docker build --build-arg=revision=$(GIT_REVISION) --build-arg=goproxyValue=$(GOPROXY_VALUE) -t $(IMAGE_PREFIX)$(shell basename $(@D)) $(@D)/
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
 	touch $@
 
@@ -119,7 +119,7 @@ exes $(EXES) protos $(PROTO_GOS) lint test shell mod-check check-protos web-buil
 	@mkdir -p $(shell pwd)/.cache
 	@echo
 	@echo ">>>> Entering build container: $@"
-	@$(SUDO) time docker run --net=host --rm $(TTY) -i $(GOVOLUMES) $(BUILD_IMAGE) $@;
+	@$(SUDO) time docker run --rm $(TTY) -i $(GOVOLUMES) $(BUILD_IMAGE) $@;
 
 configs-integration-test: build-image/$(UPTODATE)
 	@mkdir -p $(shell pwd)/.pkg
@@ -127,7 +127,7 @@ configs-integration-test: build-image/$(UPTODATE)
 	@DB_CONTAINER="$$(docker run -d -e 'POSTGRES_DB=configs_test' postgres:9.6.16)"; \
 	echo ; \
 	echo ">>>> Entering build container: $@"; \
-	$(SUDO) docker run --net=host --rm $(TTY) -i $(GOVOLUMES) \
+	$(SUDO) docker run --rm $(TTY) -i $(GOVOLUMES) \
 		-v $(shell pwd)/cmd/cortex/migrations:/migrations:z \
 		--workdir /go/src/github.com/cortexproject/cortex \
 		--link "$$DB_CONTAINER":configs-db.cortex.local \
@@ -315,7 +315,7 @@ packages: dist/cortex-linux-amd64 packaging/fpm/$(UPTODATE)
 	@mkdir -p $(shell pwd)/.pkg
 	@mkdir -p $(shell pwd)/.cache
 	@echo ">>>> Entering build container: $@"
-	@$(SUDO) time docker run --net=host --rm $(TTY) \
+	@$(SUDO) time docker run --rm $(TTY) \
 		-v  $(shell pwd):/src/github.com/cortexproject/cortex:delegated,z \
 		-i $(PACKAGE_IMAGE) $@;
 
