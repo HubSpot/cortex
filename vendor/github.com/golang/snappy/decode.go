@@ -22,6 +22,8 @@ var (
 	ErrCorrupt7 = errors.New("snappy: corrupt input 7")
 	ErrCorrupt8 = errors.New("snappy: corrupt input 8")
 	ErrCorrupt9 = errors.New("snappy: corrupt input 9")
+	ErrCorrupt10 = errors.New("snappy: corrupt input 10")
+	ErrCorrupt11 = errors.New("snappy: corrupt input 11")
 	// ErrTooLarge reports that the uncompressed length is too large.
 	ErrTooLarge = errors.New("snappy: decoded block is too large")
 	// ErrUnsupported reports that the input isn't supported.
@@ -41,7 +43,7 @@ func DecodedLen(src []byte) (int, error) {
 func decodedLen(src []byte) (blockLen, headerLen int, err error) {
 	v, n := binary.Uvarint(src)
 	if n <= 0 || v > 0xffffffff {
-		return 0, 0, ErrCorrupt
+		return 0, 0, ErrCorrupt10
 	}
 
 	const wordSize = 32 << (^uint(0) >> 32 & 1)
@@ -79,7 +81,7 @@ func Decode(dst, src []byte) ([]byte, error) {
 	case decodeErrCodeUnsupportedLiteralLength:
 		return nil, errUnsupportedLiteralLength
 	}
-	return nil, ErrCorrupt
+	return nil, ErrCorrupt11
 }
 
 // NewReader returns a new Reader that decompresses from r, using the framing
