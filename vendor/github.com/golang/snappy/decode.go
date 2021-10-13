@@ -12,7 +12,16 @@ import (
 
 var (
 	// ErrCorrupt reports that the input is invalid.
-	ErrCorrupt = errors.New("snappy: corrupt input")
+	ErrCorrupt0 = errors.New("snappy: corrupt input 0")
+	ErrCorrupt1 = errors.New("snappy: corrupt input 1")
+	ErrCorrupt2 = errors.New("snappy: corrupt input 2")
+	ErrCorrupt3 = errors.New("snappy: corrupt input 3")
+	ErrCorrupt4 = errors.New("snappy: corrupt input 4")
+	ErrCorrupt5 = errors.New("snappy: corrupt input 5")
+	ErrCorrupt6 = errors.New("snappy: corrupt input 6")
+	ErrCorrupt7 = errors.New("snappy: corrupt input 7")
+	ErrCorrupt8 = errors.New("snappy: corrupt input 8")
+	ErrCorrupt9 = errors.New("snappy: corrupt input 9")
 	// ErrTooLarge reports that the uncompressed length is too large.
 	ErrTooLarge = errors.New("snappy: decoded block is too large")
 	// ErrUnsupported reports that the input isn't supported.
@@ -111,7 +120,7 @@ func (r *Reader) Reset(reader io.Reader) {
 func (r *Reader) readFull(p []byte, allowEOF bool) (ok bool) {
 	if _, r.err = io.ReadFull(r.r, p); r.err != nil {
 		if r.err == io.ErrUnexpectedEOF || (r.err == io.EOF && !allowEOF) {
-			r.err = ErrCorrupt
+			r.err = ErrCorrupt0
 		}
 		return false
 	}
@@ -135,7 +144,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 		chunkType := r.buf[0]
 		if !r.readHeader {
 			if chunkType != chunkTypeStreamIdentifier {
-				r.err = ErrCorrupt
+				r.err = ErrCorrupt1
 				return 0, r.err
 			}
 			r.readHeader = true
@@ -152,7 +161,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 		case chunkTypeCompressedData:
 			// Section 4.2. Compressed data (chunk type 0x00).
 			if chunkLen < checksumSize {
-				r.err = ErrCorrupt
+				r.err = ErrCorrupt2
 				return 0, r.err
 			}
 			buf := r.buf[:chunkLen]
@@ -168,7 +177,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 				return 0, r.err
 			}
 			if n > len(r.decoded) {
-				r.err = ErrCorrupt
+				r.err = ErrCorrupt3
 				return 0, r.err
 			}
 			if _, err := Decode(r.decoded, buf); err != nil {
@@ -176,7 +185,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 				return 0, r.err
 			}
 			if crc(r.decoded[:n]) != checksum {
-				r.err = ErrCorrupt
+				r.err = ErrCorrupt4
 				return 0, r.err
 			}
 			r.i, r.j = 0, n
@@ -185,7 +194,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 		case chunkTypeUncompressedData:
 			// Section 4.3. Uncompressed data (chunk type 0x01).
 			if chunkLen < checksumSize {
-				r.err = ErrCorrupt
+				r.err = ErrCorrupt5
 				return 0, r.err
 			}
 			buf := r.buf[:checksumSize]
@@ -196,14 +205,14 @@ func (r *Reader) Read(p []byte) (int, error) {
 			// Read directly into r.decoded instead of via r.buf.
 			n := chunkLen - checksumSize
 			if n > len(r.decoded) {
-				r.err = ErrCorrupt
+				r.err = ErrCorrupt6
 				return 0, r.err
 			}
 			if !r.readFull(r.decoded[:n], false) {
 				return 0, r.err
 			}
 			if crc(r.decoded[:n]) != checksum {
-				r.err = ErrCorrupt
+				r.err = ErrCorrupt7
 				return 0, r.err
 			}
 			r.i, r.j = 0, n
@@ -212,7 +221,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 		case chunkTypeStreamIdentifier:
 			// Section 4.1. Stream identifier (chunk type 0xff).
 			if chunkLen != len(magicBody) {
-				r.err = ErrCorrupt
+				r.err = ErrCorrupt8
 				return 0, r.err
 			}
 			if !r.readFull(r.buf[:len(magicBody)], false) {
@@ -220,7 +229,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 			}
 			for i := 0; i < len(magicBody); i++ {
 				if r.buf[i] != magicBody[i] {
-					r.err = ErrCorrupt
+					r.err = ErrCorrupt9
 					return 0, r.err
 				}
 			}
