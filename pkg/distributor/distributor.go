@@ -442,9 +442,7 @@ func (d *Distributor) Push(ctx context.Context, req *ingester_client.WriteReques
 		return nil, err
 	}
 
-	if userID == "htrosstest" {
-		level.Info(d.log).Log("msg", "write request htrosstest", proto.MarshalTextString(req))
-	}
+	level.Info(d.log).Log("msg", "write request", proto.MarshalTextString(req))
 
 
 	now := time.Now()
