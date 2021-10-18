@@ -7,8 +7,6 @@ import (
 	context "context"
 	fmt "fmt"
 	cortexpb "github.com/cortexproject/cortex/pkg/cortexpb"
-	util_log "github.com/cortexproject/cortex/pkg/util/log"
-	"github.com/go-kit/kit/log/level"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"
@@ -99,8 +97,6 @@ func RegisterDistributorServer(s *grpc.Server, srv DistributorServer) {
 
 func _Distributor_Push_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(cortexpb.WriteRequest)
-
-	level.Debug(util_log.Logger).Log("msg", proto.MarshalTextString(in))
 
 	if err := dec(in); err != nil {
 		return nil, err

@@ -34,6 +34,8 @@ import (
 	"github.com/cortexproject/cortex/pkg/util/math"
 	"github.com/cortexproject/cortex/pkg/util/services"
 	"github.com/cortexproject/cortex/pkg/util/validation"
+
+	proto "github.com/gogo/protobuf/proto"
 )
 
 var (
@@ -439,6 +441,11 @@ func (d *Distributor) Push(ctx context.Context, req *ingester_client.WriteReques
 	if err != nil {
 		return nil, err
 	}
+
+	if userID == "htrosstest" {
+		level.Info(d.log).Log("msg", "write request htrosstest", proto.MarshalTextString(req))
+	}
+
 
 	now := time.Now()
 	d.activeUsers.UpdateUserTimestamp(userID, now)
